@@ -2059,7 +2059,7 @@ module.exports = function (RED) {
                 return idInit;
             }
 
-            const match = idInit.match(/^nr_[\da-zA-Z]{6}_([a-zA-Z-]+)$/);
+            const match = idInit && idInit.match(/^nr_[\da-zA-Z]{6}_([a-zA-Z-]+)$/);
             return match && match[1];
         }
 
@@ -2068,8 +2068,10 @@ module.exports = function (RED) {
                 'system.listMethods': (_, parameters, callback) => {
                     const [idInit] = parameters;
                     const iface = this.getIfaceFromIdInit(idInit);
-                    this.lastEvent[iface] = now();
-                    this.setIfaceStatus(iface, true);
+                    if (iface) {
+                        this.lastEvent[iface] = now();
+                        this.setIfaceStatus(iface, true);
+                    }
                     const response = Object.keys(this.rpcMethods);
                     this.logger.debug('    >', iface, 'system.listMethods', JSON.stringify(response));
                     callback(null, response);
