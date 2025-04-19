@@ -681,6 +681,19 @@ module.exports = function (RED) {
             }
         }
 
+        backfillChannelNames() {
+            for (const iface of Object.keys(this.metadata.devices)) {
+                const devices = this.metadata.devices[iface];
+                for (const addr of Object.keys(devices)) {
+                    if(devices[addr].NAME) {
+                        this.channelNames[addr] = devices[addr].NAME;
+                    } else if(devices[addr].PARENT && devices[devices[addr].PARENT] && devices[devices[addr].PARENT].NAME) {
+                        this.channelNames[addr] = devices[devices[addr].PARENT].NAME + ":" + devices[addr].CHANNEL.toString();
+                    }
+                }
+            }
+        }
+
         /**
          *
          * @returns {Promise<any>}
@@ -689,6 +702,7 @@ module.exports = function (RED) {
             return new Promise(resolve => {
                 fs.writeFileSync(this.metadataFile, JSON.stringify(this.metadata));
                 this.logger.info('metadata saved to', this.metadataFile);
+                this.backfillChannelNames()
                 resolve();
             });
         }
@@ -774,6 +788,7 @@ module.exports = function (RED) {
                         this.program[s].fromFile = true;
                     });
                     */
+                    this.backfillChannelNames();
                     resolve();
                 } catch (error) {
                     this.logger.error('error loading regadata ' + error.message);
@@ -992,6 +1007,7 @@ module.exports = function (RED) {
                             this.channelNames[ch.address] = ch.name;
                         }
 
+                        this.backfillChannelNames();
                         resolve();
                     }
                 });
